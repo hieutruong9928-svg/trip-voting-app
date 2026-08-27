@@ -219,7 +219,7 @@ const HTML = `<!doctype html>
 <title>Vote chuyến đi</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗳️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#F2F7FB; --card:#FFFFFF; --ink:#102A38; --muted:#5E7683; --line:#DCE8F0;
@@ -259,7 +259,7 @@ body{
 }
 .wrap{max-width:660px;margin:0 auto;padding:44px 20px 76px;display:flex;flex-direction:column;gap:20px}
 header h1{
-  font-family:'Bricolage Grotesque','Be Vietnam Pro',sans-serif;font-weight:800;
+  font-family:'Be Vietnam Pro',system-ui,sans-serif;font-weight:800;
   font-size:clamp(1rem,4.6vw,2rem);letter-spacing:-.02em;line-height:1.2;white-space:nowrap;
   background:linear-gradient(94deg,var(--grad-b) 10%,var(--grad-a) 90%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
@@ -279,7 +279,7 @@ header p{color:var(--muted);margin-top:8px;font-size:.95rem;max-width:52ch}
 .banner.warn{background:var(--card);color:var(--muted)}
 
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--shadow)}
-.card h2{font-family:'Bricolage Grotesque','Be Vietnam Pro',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:-.01em;margin-bottom:16px}
+.card h2{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:-.01em;margin-bottom:16px}
 
 .field{margin-bottom:18px}
 .field label.lbl,.grouplbl,label.field,.q h3{
@@ -394,7 +394,7 @@ button.primary:focus-visible,button#send:focus-visible{outline:2px solid var(--i
   margin:0 auto 14px;box-shadow:0 10px 26px -10px var(--ring);
   animation:pop .45s cubic-bezier(.2,1.4,.4,1);
 }
-.success h3{font-family:'Bricolage Grotesque','Be Vietnam Pro',sans-serif;font-size:1.25rem;font-weight:800;letter-spacing:-.01em}
+.success h3{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-size:1.25rem;font-weight:800;letter-spacing:-.01em}
 .success p{color:var(--muted);font-size:.92rem;margin-top:8px;overflow-wrap:anywhere;max-width:44ch;margin-left:auto;margin-right:auto}
 @keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
 
