@@ -21,7 +21,7 @@ function bad(msg: string, status = 400) {
 }
 
 // ===== Quản trị: đổi mật khẩu bằng env ADMIN_PASS, hoặc sửa trực tiếp dòng dưới =====
-const ADMIN_PASS = Deno.env.get("ADMIN_PASS") ?? "doi-mat-khau-nay";
+const ADMIN_PASS = Deno.env.get("ADMIN_PASS") ?? "thanh@123";
 
 function isAdmin(req: Request): boolean {
   const m = (req.headers.get("cookie") ?? "").match(/(?:^|;\s*)admin_pass=([^;]+)/);
