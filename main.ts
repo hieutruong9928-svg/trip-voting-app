@@ -5,13 +5,25 @@ const LOCS = ["Phan Thiết", "Vũng Tàu", "Hồ Tràm"];
 const OTHER = "Khác";
 const DATES = ["19/09", "26/09"];
 
-type Vote = { name: string; loc: string[]; other: string; dates: string[]; at: string };
+type Vote = { name: string; loc: string[]; other: string; dates: string[]; at: string; feedback?: string };
 
-async function getState(): Promise<{ votes: Record<string, Vote> }> {
+// Bản đầy đủ (kèm ý kiến đóng góp) — CHỈ dùng cho trang admin
+async function getFullState(): Promise<{ votes: Record<string, Vote> }> {
   const votes: Record<string, Vote> = Object.create(null);
   for await (const e of kv.list<Vote>({ prefix: ["vote"] })) {
     const v = e.value;
     Object.defineProperty(votes, v.name, { value: v, enumerable: true, writable: true, configurable: true });
+  }
+  return { votes };
+}
+
+// Bản công khai — LOẠI BỎ feedback để ý kiến đóng góp không lộ ra ngoài
+async function getState(): Promise<{ votes: Record<string, Omit<Vote, "feedback">> }> {
+  const full = await getFullState();
+  const votes: Record<string, Omit<Vote, "feedback">> = Object.create(null);
+  for (const k of Object.keys(full.votes)) {
+    const { feedback: _fb, ...pub } = full.votes[k];
+    Object.defineProperty(votes, k, { value: pub, enumerable: true, writable: true, configurable: true });
   }
   return { votes };
 }
@@ -21,7 +33,7 @@ function bad(msg: string, status = 400) {
 }
 
 // ===== Quản trị: đổi mật khẩu bằng env ADMIN_PASS, hoặc sửa trực tiếp dòng dưới =====
-const ADMIN_PASS = Deno.env.get("ADMIN_PASS") ?? "thanh@123";
+const ADMIN_PASS = Deno.env.get("ADMIN_PASS") ?? "doi-mat-khau-nay";
 
 function isAdmin(req: Request): boolean {
   const m = (req.headers.get("cookie") ?? "").match(/(?:^|;\s*)admin_pass=([^;]+)/);
@@ -69,7 +81,7 @@ ${err ? `<p class="err">${eh(err)}</p>` : ""}
 </div></div></body></html>`;
 }
 
-function adminPage(state: { votes: Record<string, { name: string; loc: string[]; other: string; dates: string[]; at: string }> }): string {
+function adminPage(state: { votes: Record<string, Vote> }): string {
   const names = Object.keys(state.votes);
   const rows = names
     .map((n) => state.votes[n])
@@ -78,14 +90,15 @@ function adminPage(state: { votes: Record<string, { name: string; loc: string[];
 <td><b>${eh(v.name)}</b></td>
 <td>${v.loc.map(eh).join(", ")}${v.other ? `<br><i style="color:var(--muted)">💬 ${eh(v.other)}</i>` : ""}</td>
 <td>${v.dates.map(eh).join(", ")}</td>
+<td style="max-width:220px">${v.feedback ? `<span style="color:var(--muted)">${eh(v.feedback)}</span>` : `<span style="color:var(--line)">—</span>`}</td>
 <td style="white-space:nowrap;color:var(--muted)">${eh(new Date(v.at).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" }))}</td>
 <td><form method="post" action="/admin/delete" onsubmit="return confirm('Xóa vote của ${eh(v.name).replace(/'/g, "\\'")}?')"><input type="hidden" name="name" value="${eh(v.name)}"><button class="small danger">Xóa</button></form></td>
 </tr>`).join("");
   return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Quản trị vote</title>${ADMIN_CSS}</head><body><div class="wrap">
 <div class="bar"><div><h1>📊 Quản trị vote</h1><p class="sub" style="margin:0">Trang vote: <a href="/">mở trang chính</a> · <a href="/api/state">dữ liệu JSON</a> · <a href="/admin/logout">đăng xuất</a></p></div><span class="total">${names.length} người đã vote</span></div>
 <div class="card"><div class="tblwrap"><table>
-<tr><th>Tên</th><th>Địa điểm</th><th>Ngày đi</th><th>Lúc</th><th></th></tr>
-${rows || `<tr><td colspan="5" style="color:var(--muted)">Chưa có ai vote.</td></tr>`}
+<tr><th>Tên</th><th>Địa điểm</th><th>Ngày đi</th><th>💭 Ý kiến đóng góp</th><th>Lúc</th><th></th></tr>
+${rows || `<tr><td colspan="6" style="color:var(--muted)">Chưa có ai vote.</td></tr>`}
 </table></div></div>
 <div class="card"><form method="post" action="/admin/reset" onsubmit="return confirm('Xóa TOÀN BỘ ${names.length} phiếu? Không hoàn tác được.')"><button class="danger">🗑️ Reset toàn bộ phiếu</button></form>
 <p class="sub" style="margin:10px 0 0">Xóa vote của ai thì người đó (và trình duyệt của họ) được vote lại. Reset toàn bộ = mở đợt vote mới.</p></div>
@@ -126,7 +139,8 @@ Deno.serve(async (req: Request) => {
     const other = loc.includes(OTHER) ? String(o.other ?? "").trim().slice(0, 200) : "";
     if (loc.length === 0) return bad("Chưa chọn địa điểm");
     if (dates.length === 0) return bad("Chưa chọn ngày đi");
-    const vote: Vote = { name, loc, other, dates, at: new Date().toISOString() };
+    const feedback = String(o.feedback ?? "").trim().slice(0, 500);
+    const vote: Vote = { name, loc, other, dates, at: new Date().toISOString(), ...(feedback ? { feedback } : {}) };
     // Mỗi tên chỉ vote 1 lần: ghi atomic, thất bại nếu tên đã tồn tại
     const res = await kv.atomic()
       .check({ key: ["vote", name], versionstamp: null })
@@ -187,7 +201,7 @@ Deno.serve(async (req: Request) => {
       return new Response(null, { status: 303, headers: { "location": "/admin" } });
     }
 
-    return htmlRes(adminPage(await getState()));
+    return htmlRes(adminPage(await getFullState()));
   }
 
   if (url.pathname === "/" || url.pathname === "/index.html") {
@@ -282,6 +296,14 @@ input[type=text]{
 }
 input[type=text]::placeholder{color:var(--muted);opacity:.6}
 input[type=text]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--ring)}
+textarea{
+  width:100%;padding:12px 15px;border:1.5px solid var(--line);border-radius:13px;
+  background:var(--card);color:var(--ink);font:inherit;font-size:.95rem;
+  resize:vertical;min-height:72px;max-height:220px;overflow-wrap:anywhere;
+  transition:border-color .15s, box-shadow .15s;
+}
+textarea::placeholder{color:var(--muted);opacity:.6}
+textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--ring)}
 
 .opts{display:flex;flex-direction:column;gap:9px}
 label.opt{
@@ -414,6 +436,10 @@ button.primary:focus-visible,button#send:focus-visible{outline:2px solid var(--i
     <div class="field">
       <span class="grouplbl">📅 Ngày đi <small>— chọn được cả hai</small></span>
       <div class="opts" id="dateOpts"></div>
+    </div>
+    <div class="field">
+      <span class="grouplbl">💭 Ý kiến đóng góp <small>— không bắt buộc, chỉ admin đọc được</small></span>
+      <textarea id="feedback" maxlength="500" rows="3" placeholder="Góp ý về chuyến đi: lịch trình, chi phí, xe cộ, ăn uống... (tối đa 500 ký tự)"></textarea>
     </div>
     <button class="primary" id="send">Gửi vote</button>
     <div class="msg" id="msg"></div>
@@ -575,10 +601,11 @@ function submit(){
   if(loc.length===0)missing.push('chọn địa điểm');
   if(dates.length===0)missing.push('chọn ngày đi');
   if(missing.length){setMsg('Chưa vote được — bạn cần: '+missing.join(', ')+'.','err');return}
+  var fb=document.getElementById('feedback').value.trim();
   var btn=document.getElementById('send');
   btn.disabled=true;btn.textContent='Đang lưu...';setMsg('','');
   saveName(name);
-  fetch('/api/vote',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:name,loc:loc,other:other,dates:dates})})
+  fetch('/api/vote',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:name,loc:loc,other:other,dates:dates,feedback:fb})})
     .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
     .then(function(res){
       if(!res.ok){
