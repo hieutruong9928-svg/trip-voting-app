@@ -63,8 +63,8 @@ th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.08e
 td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
 tr:last-child td{border-bottom:0}
 input[type=password]{width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);font:inherit;margin-bottom:12px}
-button{padding:10px 16px;border:0;border-radius:11px;background:linear-gradient(94deg,var(--a),var(--b));color:#fff;font:inherit;font-weight:700;cursor:pointer}
-button.small{padding:5px 12px;font-size:.8rem;font-weight:600}
+button{padding:10px 16px;border:0;white-space:nowrap;border-radius:11px;background:linear-gradient(94deg,var(--a),var(--b));color:#fff;font:inherit;font-weight:700;cursor:pointer}
+button.small{padding:5px 14px;font-size:.8rem;font-weight:600;white-space:nowrap}
 button.danger{background:var(--err)}
 .bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .total{background:var(--soft);border-radius:999px;padding:5px 14px;font-weight:700;font-size:.9rem}
@@ -238,7 +238,6 @@ const HTML = `<!doctype html>
     --ring:rgba(34,211,238,.3);
     --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 32px -16px rgba(0,0,0,.55);
   }
-  :root:not([data-theme="light"]) .bgpick{display:none}
 }
 :root[data-theme="dark"]{
   --bg:#0B1720; --card:#12222E; --ink:#E7F1F6; --muted:#8CA4B2; --line:#20374A;
@@ -248,7 +247,6 @@ const HTML = `<!doctype html>
   --ring:rgba(34,211,238,.3);
   --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 32px -16px rgba(0,0,0,.55);
 }
-:root[data-theme="dark"] .bgpick{display:none}
 
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -398,18 +396,12 @@ button.primary:focus-visible,button#send:focus-visible{outline:2px solid var(--i
 .success p{color:var(--muted);font-size:.92rem;margin-top:8px;overflow-wrap:anywhere;max-width:44ch;margin-left:auto;margin-right:auto}
 @keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
 
-.bgpick{display:flex;align-items:center;gap:9px;margin-top:16px;flex-wrap:wrap}
-.bgpick .lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-right:2px}
-.bgpick button{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);cursor:pointer;padding:0;transition:transform .12s}
-.bgpick button:hover{border-color:var(--accent);transform:scale(1.12)}
-.bgpick button.on{outline:2px solid var(--accent);outline-offset:2px}
-.bgpick button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
 @media (prefers-reduced-motion: reduce){
   .fill{transition:none}
   .success .tick{animation:none}
   .hero-ico{animation:none}
-  button.primary,button#send,label.opt,.bgpick button{transition:none}
+  button.primary,button#send,label.opt{transition:none}
 }
 </style>
 </head>
@@ -419,7 +411,6 @@ button.primary:focus-visible,button#send:focus-visible{outline:2px solid var(--i
     <div class="hero-ico">🏖️</div>
     <h1>Đi biển thôi — chọn điểm đến &amp; ngày đi</h1>
     <p>Nhập tên, chọn địa điểm và ngày đi rồi gửi vote — cả 3 mục đều bắt buộc. Mỗi người chỉ vote một lần.</p>
-    <div class="bgpick" id="bgpick"><span class="lbl">Màu nền</span></div>
   </header>
 
   <div class="card" id="voteCard">
@@ -457,26 +448,6 @@ var OTHER='Khác';
 var DATES=[{v:'19/09',label:'Thứ Bảy · 19/09'},{v:'26/09',label:'Thứ Bảy · 26/09'}];
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
-var BGS=[
-  {c:'#EAF4FC',t:'Xanh dương nhạt'},
-  {c:'#DDEEFB',t:'Xanh dương'},
-  {c:'#F3F9FE',t:'Xanh rất nhạt'},
-  {c:'#E6F3F2',t:'Xanh ngọc'},
-  {c:'#FFFFFF',t:'Trắng'}
-];
-function getBg(){try{return localStorage.getItem('trip-vote-bg')||''}catch(e){return ''}}
-function setBg(c){try{localStorage.setItem('trip-vote-bg',c)}catch(e){}}
-function lightActive(){
-  var t=document.documentElement.getAttribute('data-theme');
-  if(t==='dark')return false;
-  if(t==='light')return true;
-  try{return !window.matchMedia('(prefers-color-scheme: dark)').matches}catch(e){return true}
-}
-function applyBg(){
-  var c=getBg();
-  if(c&&lightActive()){document.documentElement.style.setProperty('--bg',c)}
-  else{document.documentElement.style.removeProperty('--bg')}
-}
 function savedName(){try{return localStorage.getItem('trip-vote-name')||''}catch(e){return ''}}
 function saveName(n){try{localStorage.setItem('trip-vote-name',n)}catch(e){}}
 
@@ -494,26 +465,10 @@ function saveName(n){try{localStorage.setItem('trip-vote-name',n)}catch(e){}}
   document.getElementById('dateOpts').innerHTML=h;
   document.getElementById('voter').value='';
 
-  var pick=document.getElementById('bgpick');
-  var cur=(getBg()||BGS[0].c).toUpperCase();
-  BGS.forEach(function(b){
-    var btn=document.createElement('button');
-    btn.type='button';btn.title=b.t;btn.setAttribute('aria-label',b.t);
-    btn.style.background=b.c;btn.setAttribute('data-bg',b.c);
-    if(cur===b.c.toUpperCase())btn.className='on';
-    btn.addEventListener('click',function(){
-      setBg(b.c);applyBg();
-      var all=pick.querySelectorAll('button');
-      for(var i=0;i<all.length;i++)all[i].classList.toggle('on',all[i]===btn);
-    });
-    pick.appendChild(btn);
-  });
 
   var cb=document.querySelector('input[name=loc][value="'+OTHER+'"]');
   cb.addEventListener('change',function(){document.getElementById('otherBox').classList.toggle('hidden',!cb.checked)});
   document.getElementById('send').addEventListener('click',submit);
-  applyBg();
-  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyBg)}catch(e){}
 })();
 
 // ----- kết quả -----
@@ -623,7 +578,9 @@ function submit(){
 var done=doneInfo();
 if(done&&done.name)showSuccess(done.name);
 refresh();
-setInterval(refresh,10000);
+// Poll tiết kiệm: 30s/lần và chỉ khi tab đang mở trước mặt (tránh vượt hạn mức hosting)
+setInterval(function(){if(!document.hidden)refresh()},30000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh()});
 </script>
 </body>
 </html>`;
