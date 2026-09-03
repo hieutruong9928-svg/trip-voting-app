@@ -869,11 +869,16 @@ body[data-page="intro"] .wrap{position:relative;z-index:1;padding-top:0}
 .intro-sky .w1{fill:var(--w1)}
 .intro-sky .w2{fill:var(--w2)}
 .intro-sky .w3{fill:var(--bg)}
-.intro-hero{text-align:center;padding:56px 0 72px;position:relative}
+header.intro-hero{text-align:center;padding:48px 0 72px;position:relative}
 .intro-hero .eyebrow{background:var(--card);border-color:transparent;box-shadow:0 1px 2px rgba(15,23,42,.06)}
 .intro-hero .hero-cta{justify-content:center;margin-top:26px}
 .intro-hero p.lead{margin:16px auto 0;max-width:46ch}
-.hero-note{margin-top:14px;font-size:.82rem;color:var(--muted)}
+.hero-badges{list-style:none;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:22px auto 0;padding:0}
+.hero-badges li{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:.8rem;font-weight:600;color:var(--muted);box-shadow:0 1px 2px rgba(15,23,42,.05)}
+/* header trang giới thiệu: logo canh giữa, thẳng hàng với hero */
+body[data-page="intro"] header.site .in{justify-content:center;padding:18px 20px 0}
+body[data-page="intro"] header.site .brand{font-size:1.05rem;gap:9px}
+body[data-page="intro"] header.site .brand .lg{width:34px;height:34px;border-radius:10px;font-size:1.05rem}
 body[data-page="intro"] section:first-of-type{margin-top:4px}
 .eyebrow{background:transparent;border:1px solid var(--line);color:var(--blue-ink);letter-spacing:.04em;font-size:.74rem;padding:5px 12px;border-radius:999px}
 .intro-hero h1{font-size:clamp(2.4rem,8vw,3.6rem);line-height:1.12;margin-top:8px}
@@ -901,8 +906,10 @@ footer{font-size:.78rem}
   header.hero{padding-top:0}
   header h1{font-size:1.75rem}
   header p{font-size:.95rem}
-  .intro-sky{height:460px}
-  .intro-hero{padding:28px 0 56px}
+  .intro-sky{height:500px}
+  header.intro-hero{padding:30px 0 56px}
+  .hero-badges{gap:6px}
+  .hero-badges li{font-size:.76rem;padding:5px 11px}
   .intro-hero h1{font-size:2.5rem}
   .intro-hero p.lead{font-size:.98rem}
   .hero-cta{flex-direction:column;align-items:stretch}
@@ -1018,13 +1025,17 @@ const INTRO_HTML = page({
   nav: "intro",
   body: `
   <header class="hero intro-hero">
-    <span class="eyebrow">🏖️ Chuyến đi biển · tháng 9</span>
+    <span class="eyebrow">Chuyến đi biển · tháng 9</span>
     <h1>Đi biển <em>thôi!</em></h1>
     <p class="lead">Cả nhóm cùng chọn điểm đến và ngày đi — công bằng, nhanh gọn, không cần cãi nhau 200 tin trong group chat.</p>
     <div class="hero-cta">
       <a class="btn start" href="/home">Bắt đầu thôi <span class="arr">→</span></a>
     </div>
-    <p class="hero-note">Chưa tới 1 phút · mỗi người một phiếu · kết quả trực tiếp</p>
+    <ul class="hero-badges" aria-label="Điểm nổi bật">
+      <li>⏱️ Chưa tới 1 phút</li>
+      <li>🎯 Mỗi người một phiếu</li>
+      <li>⚡ Kết quả trực tiếp</li>
+    </ul>
   </header>
 
   <section>
