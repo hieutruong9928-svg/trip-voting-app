@@ -1,6 +1,6 @@
 // Vote chuyến đi — Deno Deploy app (Deno KV lưu vote chung)
-// v8: thêm trang home (giới thiệu → địa điểm tham khảo → vote → kết quả),
-//     địa điểm + giá tiền do admin quản lý trong /admin, dán URL tự lấy thông tin.
+// v8: 3 trang công khai — / (giới thiệu), /places (địa điểm & giá, admin quản lý trong /admin,
+//     dán URL tự lấy thông tin), /vote (form vote + kết quả).
 const kv = await Deno.openKv();
 
 const LOCS = ["Phan Thiết", "Vũng Tàu", "Hồ Tràm"];
@@ -243,7 +243,7 @@ function adminPage(state: { votes: Record<string, Vote> }, places: Place[], edit
 
   const e = editing;
   return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Quản trị vote</title>${ADMIN_CSS}</head><body><div class="wrap">
-<div class="bar"><div><h1>📊 Quản trị</h1><p class="sub" style="margin:0"><a href="/">mở trang chính</a> · <a href="/api/state">JSON vote</a> · <a href="/api/places">JSON địa điểm</a> · <a href="/admin/logout">đăng xuất</a></p></div><span class="total">${names.length} người đã vote</span></div>
+<div class="bar"><div><h1>📊 Quản trị</h1><p class="sub" style="margin:0"><a href="/">trang chủ</a> · <a href="/places">địa điểm</a> · <a href="/vote">vote</a> · <a href="/api/state">JSON vote</a> · <a href="/api/places">JSON địa điểm</a> · <a href="/admin/logout">đăng xuất</a></p></div><span class="total">${names.length} người đã vote</span></div>
 <div class="nav"><a href="#places">📍 Địa điểm tham khảo</a><a href="#votes">🗳️ Phiếu vote</a></div>
 ${flash ? `<div class="card" style="padding:12px 16px"><span class="ok">✅ ${eh(flash)}</span></div>` : ""}
 
@@ -455,24 +455,21 @@ Deno.serve(async (req: Request) => {
     return htmlRes(adminPage(await getFullState(), await getPlaces(), editing, url.searchParams.get("ok") ?? ""));
   }
 
-  if (url.pathname === "/" || url.pathname === "/index.html") {
-    return new Response(HTML, { headers: { "content-type": "text/html; charset=utf-8" } });
+  if (req.method === "GET") {
+    if (url.pathname === "/" || url.pathname === "/index.html") return htmlRes(HOME_HTML);
+    if (url.pathname === "/places") return htmlRes(PLACES_HTML);
+    if (url.pathname === "/vote") return htmlRes(VOTE_HTML);
   }
 
   return new Response("Not found", { status: 404 });
 });
 
-// ===================== TRANG HOME =====================
-const HTML = `<!doctype html>
-<html lang="vi">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Đi biển thôi — chọn điểm đến & vote</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏖️</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
+// ===================== 3 TRANG CÔNG KHAI =====================
+// /        — trang chủ giới thiệu (hero, 3 bước, số liệu nhanh, lối vào 2 trang kia)
+// /places  — tham khảo địa điểm & giá (admin quản lý)
+// /vote    — form vote + kết quả
+
+const SITE_CSS = `<style>
 :root{
   --bg:#F2F7FB; --card:#FFFFFF; --ink:#102A38; --muted:#5E7683; --line:#DCE8F0;
   --grad-a:#06B6D4; --grad-b:#2563EB;
@@ -704,40 +701,204 @@ footer a{color:var(--muted)}
   label.opt.flash{animation:none}
   button.primary,button#send,label.opt,.place,.btn{transition:none}
 }
-</style>
+/* ---- bổ sung cho bố cục nhiều trang ---- */
+nav.top a.on{background:var(--accent-soft);color:var(--accent-ink)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow)}
+.stat .k{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.stat .v{font-size:1.35rem;font-weight:800;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.stat .v small{font-size:.8rem;font-weight:600;color:var(--muted);letter-spacing:0}
+@media(max-width:560px){.stats{grid-template-columns:1fr}.stat{display:flex;justify-content:space-between;align-items:baseline}.stat .v{margin:0}}
+.entries{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.entries{grid-template-columns:1fr}}
+a.entry{display:flex;flex-direction:column;gap:6px;background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:20px;text-decoration:none;color:var(--ink);box-shadow:var(--shadow);transition:transform .15s,border-color .15s}
+a.entry:hover{transform:translateY(-2px);border-color:var(--accent)}
+a.entry .ico{font-size:1.7rem}
+a.entry h3{font-size:1.05rem;font-weight:800;letter-spacing:-.01em}
+a.entry p{color:var(--muted);font-size:.88rem}
+a.entry .go{margin-top:auto;padding-top:8px;color:var(--accent-ink);font-weight:700;font-size:.88rem}
+.info{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 24px;box-shadow:var(--shadow)}
+.info h2{font-size:1.1rem;font-weight:800;margin-bottom:10px;letter-spacing:-.01em}
+.info p{color:var(--muted);font-size:.93rem}
+.info p+p{margin-top:8px}
+.pill{display:inline-block;background:var(--accent-soft);color:var(--accent-ink);border-radius:999px;padding:3px 11px;font-size:.8rem;font-weight:700;margin:4px 6px 0 0}
+.crumb{color:var(--muted);font-size:.85rem}
+.crumb a{color:var(--accent-ink);text-decoration:none;font-weight:600}
+</style>`;
+
+// Khung trang dùng chung: head + nav + nội dung + footer
+function page(opts: { title: string; nav: "home" | "places" | "vote"; body: string; script: string }): string {
+  const on = (k: string) => (opts.nav === k ? ' class="on"' : "");
+  return `<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${eh(opts.title)}</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏖️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+${SITE_CSS}
 </head>
 <body>
 <nav class="top"><div class="in">
-  <span class="brand">🏖️ Đi biển thôi</span>
-  <a href="#places">Địa điểm</a>
-  <a href="#results">Kết quả</a>
-  <a href="#vote" class="cta">Vote ngay</a>
+  <a class="brand" href="/" style="color:var(--ink);padding:0">🏖️ Đi biển thôi</a>
+  <a href="/"${on("home")}>Giới thiệu</a>
+  <a href="/places"${on("places")}>Địa điểm</a>
+  <a href="/vote" class="cta">Vote</a>
 </div></nav>
-
 <div class="wrap">
-  <header class="hero" id="home">
+${opts.body}
+  <footer><a href="/">Giới thiệu</a> · <a href="/places">Địa điểm</a> · <a href="/vote">Vote &amp; kết quả</a> · <a href="/admin">quản trị</a></footer>
+</div>
+<script>
+var LOCS=${JSON.stringify(LOCS)};
+var OTHER=${JSON.stringify(OTHER)};
+var DATES=[{v:'19/09',label:'Thứ Bảy · 19/09'},{v:'26/09',label:'Thứ Bảy · 26/09'}];
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function norm(s){return String(s||'').toLowerCase().normalize('NFC')}
+function matchLoc(name){var n=norm(name);for(var i=0;i<LOCS.length;i++){if(n.indexOf(norm(LOCS[i]))>-1)return LOCS[i]}return null}
+// Link sang trang vote kèm lựa chọn sẵn
+function voteHref(name){var loc=matchLoc(name);return '/vote?'+(loc?'loc='+encodeURIComponent(loc):'other='+encodeURIComponent(name))}
+function tally(state){
+  var t={loc:{},date:{},ideas:[],names:Object.keys(state.votes||{})};
+  LOCS.concat([OTHER]).forEach(function(l){t.loc[l]=[]});
+  DATES.forEach(function(d){t.date[d.v]=[]});
+  t.names.forEach(function(n){
+    var v=state.votes[n];
+    (v.loc||[]).forEach(function(l){if(t.loc[l])t.loc[l].push(n)});
+    (v.dates||[]).forEach(function(d){if(t.date[d])t.date[d].push(n)});
+    if(v.other)t.ideas.push({name:n,text:v.other});
+  });
+  return t;
+}
+function leader(t){var best=null;LOCS.forEach(function(l){var n=t.loc[l].length;if(n&&(!best||n>best.n))best={name:l,n:n}});return best}
+${opts.script}
+</script>
+</body>
+</html>`;
+}
+
+// ---------- / : GIỚI THIỆU ----------
+const HOME_HTML = page({
+  title: "Đi biển thôi — giới thiệu chuyến đi",
+  nav: "home",
+  body: `
+  <header class="hero">
     <div class="hero-ico">🏖️</div>
-    <h1>Đi biển thôi —<br>chọn điểm đến &amp; ngày đi</h1>
-    <p>Xem trước các địa điểm và giá tham khảo bên dưới, rồi vote nơi bạn muốn đi và ngày rảnh. Mỗi người chỉ vote một lần, kết quả hiện chung cho cả nhóm.</p>
+    <h1>Đi biển thôi —<br>cả nhóm cùng chọn điểm đến</h1>
+    <p>Trang này để cả nhóm xem trước các địa điểm, giá tham khảo, rồi vote nơi muốn đi và ngày rảnh. Mỗi người chỉ vote một lần, kết quả hiện chung cho tất cả.</p>
     <div class="steps">
-      <span class="step"><b>1</b> Tham khảo địa điểm</span>
-      <span class="step"><b>2</b> Chọn nơi &amp; ngày</span>
-      <span class="step"><b>3</b> Gửi vote</span>
+      <span class="step"><b>1</b> Xem địa điểm &amp; giá</span>
+      <span class="step"><b>2</b> Vote nơi &amp; ngày</span>
+      <span class="step"><b>3</b> Xem kết quả</span>
     </div>
     <div class="hero-cta">
-      <a class="btn grad" href="#vote">🗳️ Vote ngay</a>
-      <a class="btn" href="#places">Xem địa điểm ↓</a>
+      <a class="btn grad" href="/vote">🗳️ Vote ngay</a>
+      <a class="btn" href="/places">📍 Xem địa điểm</a>
     </div>
   </header>
 
+  <section class="stats" id="stats">
+    <div class="stat"><div class="k">Địa điểm gợi ý</div><div class="v" id="stPlaces">…</div></div>
+    <div class="stat"><div class="k">Đã vote</div><div class="v" id="stVotes">…</div></div>
+    <div class="stat"><div class="k">Đang dẫn đầu</div><div class="v" id="stLead">…</div></div>
+  </section>
+
+  <section class="entries">
+    <a class="entry" href="/places"><span class="ico">📍</span><h3>Tham khảo địa điểm</h3><p>Ảnh, mô tả, giá tiền và link đặt phòng của từng nơi — xem trước rồi hãy vote.</p><span class="go">Xem địa điểm →</span></a>
+    <a class="entry" href="/vote"><span class="ico">🗳️</span><h3>Vote &amp; kết quả</h3><p>Chọn nơi muốn đi, ngày rảnh, góp ý cho ban tổ chức. Kết quả cập nhật trực tiếp.</p><span class="go">Đi vote →</span></a>
+  </section>
+
+  <section class="info">
+    <h2>ℹ️ Thông tin chuyến đi</h2>
+    <p><b>Ngày dự kiến:</b> <span class="pill">Thứ Bảy · 19/09</span><span class="pill">Thứ Bảy · 26/09</span></p>
+    <p><b>Điểm đến đang cân nhắc:</b> ${LOCS.map((l) => `<span class="pill">${eh(l)}</span>`).join("")}<span class="pill">Khác — bạn đề xuất</span></p>
+    <p>Vote đóng khi ban tổ chức chốt. Có góp ý về lịch trình, xe cộ, chi phí thì ghi vào ô ý kiến trong trang vote — chỉ ban tổ chức đọc được.</p>
+  </section>`,
+  script: `
+function fill(id,v){document.getElementById(id).innerHTML=v}
+fetch('/api/places',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+  var n=(j.places||[]).length;fill('stPlaces',n?n+' <small>nơi</small>':'<small>chưa có</small>');
+}).catch(function(){fill('stPlaces','—')});
+fetch('/api/state',{cache:'no-store'}).then(function(r){return r.json()}).then(function(s){
+  var t=tally(s);fill('stVotes',t.names.length+' <small>người</small>');
+  var l=leader(t);fill('stLead',l?esc(l.name)+' <small>'+l.n+' phiếu</small>':'<small>chưa có phiếu</small>');
+}).catch(function(){fill('stVotes','—');fill('stLead','—')});`,
+});
+
+// ---------- /places : ĐỊA ĐIỂM ----------
+const PLACES_HTML = page({
+  title: "Tham khảo địa điểm & giá — Đi biển thôi",
+  nav: "places",
+  body: `
+  <header class="hero" style="padding-top:8px">
+    <p class="crumb"><a href="/">Giới thiệu</a> › Địa điểm</p>
+    <h1>📍 Tham khảo địa điểm</h1>
+    <p>Xem ảnh, mô tả và giá tham khảo của từng nơi. Ưng chỗ nào thì bấm <b>Vote nơi này</b> — sang trang vote đã được chọn sẵn.</p>
+  </header>
   <section id="places">
-    <div class="sec-h"><h2>📍 Tham khảo địa điểm</h2><span class="hint" id="placesHint"></span></div>
+    <div class="sec-h"><h2>Danh sách</h2><span class="hint" id="placesHint"></span></div>
     <div class="places" id="placeList"><div class="empty-places">Đang tải địa điểm…</div></div>
   </section>
+  <div class="hero-cta" style="justify-content:center"><a class="btn grad" href="/vote">🗳️ Đi vote</a></div>`,
+  script: `
+var placesOpen={};var lastPlaces=[];var lastPlacesJson='';
+function renderPlaces(list){
+  lastPlaces=list;
+  var box=document.getElementById('placeList');
+  document.getElementById('placesHint').textContent=list.length?list.length+' địa điểm':'';
+  if(!list.length){
+    box.innerHTML='<div class="empty-places">Chưa có địa điểm tham khảo nào. Admin thêm trong <a href="/admin">trang quản trị</a> — hoặc <a href="/vote">vote thẳng</a> nhé!</div>';
+    return;
+  }
+  var h='';
+  list.forEach(function(p){
+    var open=!!placesOpen[p.id];
+    h+='<article class="place">';
+    h+='<div class="img">'+(p.image?'<img src="'+esc(p.image)+'" alt="'+esc(p.name)+'" loading="lazy" onerror="this.parentNode.textContent=\\'🏝️\\'">':'🏝️')+'</div>';
+    h+='<div class="body"><h3>'+esc(p.name)+'</h3>';
+    if(p.price)h+='<span class="price">💰 '+esc(p.price)+'</span>';
+    if(p.desc){
+      h+='<p class="desc'+(open?' open':'')+'">'+esc(p.desc)+'</p>';
+      if(p.desc.length>110)h+='<button type="button" class="more" data-id="'+esc(p.id)+'">'+(open?'Thu gọn':'Xem thêm')+'</button>';
+    }
+    if(p.note)h+='<div class="note">📝 '+esc(p.note)+'</div>';
+    h+='<div class="foot">';
+    if(p.url)h+='<a class="btn" href="'+esc(p.url)+'" target="_blank" rel="noopener">Chi tiết ↗</a>';
+    h+='<a class="btn grad" href="'+esc(voteHref(p.name))+'">Vote nơi này</a>';
+    h+='</div></div></article>';
+  });
+  box.innerHTML=h;
+  [].forEach.call(box.querySelectorAll('.more'),function(b){b.addEventListener('click',function(){var id=b.getAttribute('data-id');placesOpen[id]=!placesOpen[id];renderPlaces(lastPlaces)})});
+}
+function loadPlaces(){
+  return fetch('/api/places',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+      var list=j.places||[], s=JSON.stringify(list);
+      if(s===lastPlacesJson)return; // không đổi gì → không vẽ lại (tránh nháy)
+      lastPlacesJson=s;renderPlaces(list);
+    })
+    .catch(function(){if(!lastPlacesJson)document.getElementById('placeList').innerHTML='<div class="empty-places">Không tải được địa điểm — <a href="/vote">sang trang vote</a> nhé.</div>'});
+}
+loadPlaces();
+setInterval(function(){if(!document.hidden)loadPlaces()},30000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)loadPlaces()});`,
+});
+
+// ---------- /vote : VOTE + KẾT QUẢ ----------
+const VOTE_HTML = page({
+  title: "Vote & kết quả — Đi biển thôi",
+  nav: "vote",
+  body: `
+  <header class="hero" style="padding-top:8px">
+    <p class="crumb"><a href="/">Giới thiệu</a> › Vote</p>
+    <h1>🗳️ Vote chuyến đi</h1>
+    <p>Nhập tên, chọn địa điểm và ngày đi rồi gửi — cả 3 mục đều bắt buộc. Chưa biết chọn gì? <a href="/places" style="color:var(--accent-ink);font-weight:600">Xem địa điểm &amp; giá trước</a>.</p>
+  </header>
 
   <section id="vote">
   <div class="card" id="voteCard">
-    <h2>🗳️ Vote của bạn</h2>
+    <h2>Vote của bạn</h2>
     <div class="field">
       <label class="lbl" for="voter">👤 Tên của bạn</label>
       <input type="text" id="voter" placeholder="VD: Max" autocomplete="name" maxlength="40">
@@ -765,18 +926,8 @@ footer a{color:var(--muted)}
     <h2>📊 Kết quả</h2>
     <div id="resultsBox"><p class="empty">Đang tải...</p></div>
   </div>
-  </section>
-
-  <footer>Kết quả tự cập nhật mỗi 30 giây · <a href="/admin">quản trị</a></footer>
-</div>
-
-<script>
-var LOCS=['Phan Thiết','Vũng Tàu','Hồ Tràm'];
-var OTHER='Khác';
-var DATES=[{v:'19/09',label:'Thứ Bảy · 19/09'},{v:'26/09',label:'Thứ Bảy · 26/09'}];
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-
-function savedName(){try{return localStorage.getItem('trip-vote-name')||''}catch(e){return ''}}
+  </section>`,
+  script: `
 function saveName(n){try{localStorage.setItem('trip-vote-name',n)}catch(e){}}
 
 // ----- dựng form (1 lần) -----
@@ -796,88 +947,21 @@ function saveName(n){try{localStorage.setItem('trip-vote-name',n)}catch(e){}}
   var cb=document.querySelector('input[name=loc][value="'+OTHER+'"]');
   cb.addEventListener('change',function(){document.getElementById('otherBox').classList.toggle('hidden',!cb.checked)});
   document.getElementById('send').addEventListener('click',submit);
+
+  // Chọn sẵn theo query từ trang địa điểm: /vote?loc=Hồ%20Tràm hoặc /vote?other=Nha%20Trang
+  var q=new URLSearchParams(location.search);
+  var pre=null;
+  if(q.get('loc')){pre=document.querySelector('input[name=loc][value="'+q.get('loc').replace(/"/g,'')+'"]')}
+  if(!pre&&q.get('other')){pre=cb;document.getElementById('otherText').value=q.get('other')}
+  if(pre){
+    pre.checked=true;pre.dispatchEvent(new Event('change'));
+    var lab=pre.closest('label');if(lab)lab.classList.add('flash');
+    setMsg('Đã chọn sẵn "'+(q.get('loc')||q.get('other'))+'" — điền tên và ngày đi rồi gửi nhé.','ok');
+    history.replaceState(null,'',location.pathname);
+  }
 })();
 
-// ----- địa điểm tham khảo -----
-var placesOpen={};
-var lastPlaces=[];
-function norm(s){return String(s||'').toLowerCase().normalize('NFC')}
-function matchLoc(name){
-  var n=norm(name);
-  for(var i=0;i<LOCS.length;i++){if(n.indexOf(norm(LOCS[i]))>-1)return LOCS[i]}
-  return null;
-}
-function renderPlaces(list){
-  lastPlaces=list;
-  var box=document.getElementById('placeList');
-  document.getElementById('placesHint').textContent=list.length?list.length+' địa điểm':'';
-  if(!list.length){
-    box.innerHTML='<div class="empty-places">Chưa có địa điểm tham khảo nào. Admin thêm trong <a href="/admin">trang quản trị</a> — hoặc vote thẳng bên dưới nhé!</div>';
-    return;
-  }
-  var h='';
-  list.forEach(function(p){
-    var open=!!placesOpen[p.id];
-    var loc=matchLoc(p.name);
-    h+='<article class="place">';
-    h+='<div class="img">'+(p.image?'<img src="'+esc(p.image)+'" alt="'+esc(p.name)+'" loading="lazy" onerror="this.parentNode.textContent=\\'🏝️\\'">':'🏝️')+'</div>';
-    h+='<div class="body"><h3>'+esc(p.name)+'</h3>';
-    if(p.price)h+='<span class="price">💰 '+esc(p.price)+'</span>';
-    if(p.desc){
-      h+='<p class="desc'+(open?' open':'')+'">'+esc(p.desc)+'</p>';
-      if(p.desc.length>110)h+='<button type="button" class="more" data-id="'+esc(p.id)+'">'+(open?'Thu gọn':'Xem thêm')+'</button>';
-    }
-    if(p.note)h+='<div class="note">📝 '+esc(p.note)+'</div>';
-    h+='<div class="foot">';
-    if(p.url)h+='<a class="btn" href="'+esc(p.url)+'" target="_blank" rel="noopener">Chi tiết ↗</a>';
-    h+='<button type="button" class="btn grad pick" data-loc="'+esc(loc||'')+'" data-name="'+esc(p.name)+'">Vote nơi này</button>';
-    h+='</div></div></article>';
-  });
-  box.innerHTML=h;
-  [].forEach.call(box.querySelectorAll('.more'),function(b){b.addEventListener('click',function(){var id=b.getAttribute('data-id');placesOpen[id]=!placesOpen[id];renderPlaces(lastPlaces)})});
-  [].forEach.call(box.querySelectorAll('.pick'),function(b){b.addEventListener('click',function(){pickPlace(b.getAttribute('data-loc'),b.getAttribute('data-name'))})});
-}
-function pickPlace(loc,name){
-  var vote=document.getElementById('vote');
-  var input=null;
-  if(loc){input=document.querySelector('input[name=loc][value="'+loc+'"]')}
-  if(!input){
-    // không khớp 3 lựa chọn sẵn → tích "Khác" và điền tên
-    input=document.querySelector('input[name=loc][value="'+OTHER+'"]');
-    var ot=document.getElementById('otherText');
-    if(input&&ot&&!input.checked){ot.value=name}
-    else if(ot&&ot.value.indexOf(name)<0){ot.value=(ot.value?ot.value+', ':'')+name}
-  }
-  if(input){
-    if(!input.checked){input.checked=true;input.dispatchEvent(new Event('change'))}
-    var lab=input.closest('label');if(lab){lab.classList.remove('flash');void lab.offsetWidth;lab.classList.add('flash')}
-  }
-  vote.scrollIntoView({behavior:'smooth',block:'start'});
-  var v=document.getElementById('voter');if(v&&!v.value)setTimeout(function(){v.focus()},450);
-}
-var lastPlacesJson='';
-function loadPlaces(){
-  return fetch('/api/places',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
-      var list=j.places||[], s=JSON.stringify(list);
-      if(s===lastPlacesJson)return; // không đổi gì → không vẽ lại (tránh nháy)
-      lastPlacesJson=s;renderPlaces(list);
-    })
-    .catch(function(){document.getElementById('placeList').innerHTML='<div class="empty-places">Không tải được địa điểm — kéo xuống vote nhé.</div>'});
-}
-
 // ----- kết quả -----
-function tally(state){
-  var t={loc:{},date:{},ideas:[],names:Object.keys(state.votes||{})};
-  LOCS.concat([OTHER]).forEach(function(l){t.loc[l]=[]});
-  DATES.forEach(function(d){t.date[d.v]=[]});
-  t.names.forEach(function(n){
-    var v=state.votes[n];
-    (v.loc||[]).forEach(function(l){if(t.loc[l])t.loc[l].push(n)});
-    (v.dates||[]).forEach(function(d){if(t.date[d])t.date[d].push(n)});
-    if(v.other)t.ideas.push({name:n,text:v.other});
-  });
-  return t;
-}
 var expandedWho={};
 var lastState=null;
 function bar(label,who,total){
@@ -930,10 +1014,11 @@ function showSuccess(name){
   document.getElementById('voteCard').innerHTML=
     '<div class="success"><div class="tick">✓</div>'+
     '<h3>Bạn đã vote thành công!</h3>'+
-    '<p>Cảm ơn <b>'+esc(name)+'</b> — vote của bạn đã được ghi nhận. Mỗi người chỉ vote một lần; kết quả bên dưới tự cập nhật cho tất cả mọi người.</p></div>';
+    '<p>Cảm ơn <b>'+esc(name)+'</b> — vote của bạn đã được ghi nhận. Mỗi người chỉ vote một lần; kết quả bên dưới tự cập nhật cho tất cả mọi người.</p>'+
+    '<div class="hero-cta" style="justify-content:center"><a class="btn" href="/places">📍 Xem lại địa điểm</a></div></div>';
 }
 
-function setMsg(text,cls){var m=document.getElementById('msg');m.textContent=text;m.className='msg '+(cls||'')}
+function setMsg(text,cls){var m=document.getElementById('msg');if(m){m.textContent=text;m.className='msg '+(cls||'')}}
 
 function refresh(){
   return fetch('/api/state',{cache:'no-store'}).then(function(r){return r.json()}).then(renderResults)
@@ -971,11 +1056,8 @@ function submit(){
 
 var done=doneInfo();
 if(done&&done.name)showSuccess(done.name);
-loadPlaces();
 refresh();
 // Poll tiết kiệm: 30s/lần và chỉ khi tab đang mở trước mặt (tránh vượt hạn mức hosting)
-setInterval(function(){if(!document.hidden){refresh();loadPlaces()}},30000);
-document.addEventListener('visibilitychange',function(){if(!document.hidden){refresh();loadPlaces()}});
-</script>
-</body>
-</html>`;
+setInterval(function(){if(!document.hidden)refresh()},30000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh()});`,
+});
