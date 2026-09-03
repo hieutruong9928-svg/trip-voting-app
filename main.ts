@@ -1,6 +1,6 @@
 // Vote chuyến đi — Deno Deploy app (Deno KV lưu vote chung)
-// v8: 3 trang công khai — / (giới thiệu), /places (địa điểm & giá, admin quản lý trong /admin,
-//     dán URL tự lấy thông tin), /vote (form vote + kết quả).
+// v8: 4 trang công khai — / (giới thiệu/landing), /home (trang chủ), /places (địa điểm & giá,
+//     admin quản lý trong /admin, dán URL tự lấy thông tin), /vote (form vote + kết quả).
 const kv = await Deno.openKv();
 
 const LOCS = ["Phan Thiết", "Vũng Tàu", "Hồ Tràm"];
@@ -243,7 +243,7 @@ function adminPage(state: { votes: Record<string, Vote> }, places: Place[], edit
 
   const e = editing;
   return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Quản trị vote</title>${ADMIN_CSS}</head><body><div class="wrap">
-<div class="bar"><div><h1>📊 Quản trị</h1><p class="sub" style="margin:0"><a href="/">trang chủ</a> · <a href="/places">địa điểm</a> · <a href="/vote">vote</a> · <a href="/api/state">JSON vote</a> · <a href="/api/places">JSON địa điểm</a> · <a href="/admin/logout">đăng xuất</a></p></div><span class="total">${names.length} người đã vote</span></div>
+<div class="bar"><div><h1>📊 Quản trị</h1><p class="sub" style="margin:0"><a href="/">giới thiệu</a> · <a href="/home">trang chủ</a> · <a href="/places">địa điểm</a> · <a href="/vote">vote</a> · <a href="/api/state">JSON vote</a> · <a href="/api/places">JSON địa điểm</a> · <a href="/admin/logout">đăng xuất</a></p></div><span class="total">${names.length} người đã vote</span></div>
 <div class="nav"><a href="#places">📍 Địa điểm tham khảo</a><a href="#votes">🗳️ Phiếu vote</a></div>
 ${flash ? `<div class="card" style="padding:12px 16px"><span class="ok">✅ ${eh(flash)}</span></div>` : ""}
 
@@ -456,7 +456,8 @@ Deno.serve(async (req: Request) => {
   }
 
   if (req.method === "GET") {
-    if (url.pathname === "/" || url.pathname === "/index.html") return htmlRes(HOME_HTML);
+    if (url.pathname === "/" || url.pathname === "/index.html") return htmlRes(INTRO_HTML);
+    if (url.pathname === "/home") return htmlRes(HOME_HTML);
     if (url.pathname === "/places") return htmlRes(PLACES_HTML);
     if (url.pathname === "/vote") return htmlRes(VOTE_HTML);
   }
@@ -509,18 +510,6 @@ body{
   line-height:1.55;min-height:100vh;-webkit-font-smoothing:antialiased;
 }
 .wrap{max-width:760px;margin:0 auto;padding:28px 20px 76px;display:flex;flex-direction:column;gap:22px}
-
-/* nav */
-nav.top{
-  position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  background:var(--navbg);border-bottom:1px solid var(--line);
-}
-nav.top .in{max-width:760px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:6px;overflow-x:auto}
-nav.top .brand{font-weight:800;font-size:.95rem;margin-right:auto;white-space:nowrap;letter-spacing:-.01em}
-nav.top a{color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:600;padding:6px 11px;border-radius:999px;white-space:nowrap;transition:background .15s,color .15s}
-nav.top a:hover{background:var(--accent-soft);color:var(--accent-ink)}
-nav.top a.cta{background:linear-gradient(94deg,var(--grad-a),var(--grad-b));color:#fff}
-@media(max-width:420px){nav.top .in{padding:9px 12px;gap:2px}nav.top .brand{font-size:.85rem}nav.top a{padding:6px 8px;font-size:.78rem}}
 
 /* hero */
 header.hero{padding-top:18px}
@@ -702,7 +691,26 @@ footer a{color:var(--muted)}
   button.primary,button#send,label.opt,.place,.btn{transition:none}
 }
 /* ---- bổ sung cho bố cục nhiều trang ---- */
-nav.top a.on{background:var(--accent-soft);color:var(--accent-ink)}
+/* Header dạng thanh menu: logo trái · menu phải · nút CTA nổi bật · hamburger trên mobile */
+header.site{position:sticky;top:0;z-index:20;background:var(--navbg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+header.site .in{max-width:760px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:10px;position:relative}
+header.site .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1rem;letter-spacing:-.01em;color:var(--ink);text-decoration:none;white-space:nowrap}
+header.site .brand .lg{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--grad-a),var(--grad-b));display:grid;place-items:center;font-size:1rem;box-shadow:0 6px 14px -8px var(--ring)}
+header.site .menu{display:flex;align-items:center;gap:2px;margin-left:auto}
+header.site .menu a{color:var(--muted);text-decoration:none;font-size:.9rem;font-weight:600;padding:8px 13px;border-radius:999px;white-space:nowrap;transition:background .15s,color .15s}
+header.site .menu a:hover{background:var(--accent-soft);color:var(--accent-ink)}
+header.site .menu a.on{color:var(--accent-ink);background:var(--accent-soft)}
+header.site .menu a.cta{margin-left:6px;background:linear-gradient(94deg,var(--grad-a),var(--grad-b));color:#fff;padding:9px 18px;box-shadow:0 8px 18px -10px var(--ring);animation:pulse 2.6s ease-in-out infinite}
+header.site .menu a.cta:hover{filter:brightness(1.06)}
+@keyframes pulse{0%,100%{box-shadow:0 8px 18px -10px var(--ring)}50%{box-shadow:0 0 0 6px var(--ring)}}
+header.site .burger{display:none;margin-left:auto;width:40px;height:40px;border-radius:11px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:1.15rem;cursor:pointer;align-items:center;justify-content:center}
+@media(max-width:640px){
+  header.site .menu{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;gap:4px;background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px 14px;box-shadow:var(--shadow)}
+  header.site .menu.open{display:flex}
+  header.site .menu a{padding:11px 14px;font-size:.95rem}
+  header.site .menu a.cta{margin:6px 0 0;text-align:center}
+  header.site .burger{display:inline-flex}
+}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow)}
 .stat .k{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
@@ -724,11 +732,40 @@ a.entry .go{margin-top:auto;padding-top:8px;color:var(--accent-ink);font-weight:
 .pill{display:inline-block;background:var(--accent-soft);color:var(--accent-ink);border-radius:999px;padding:3px 11px;font-size:.8rem;font-weight:700;margin:4px 6px 0 0}
 .crumb{color:var(--muted);font-size:.85rem}
 .crumb a{color:var(--accent-ink);text-decoration:none;font-weight:600}
+
+/* ---- trang giới thiệu (landing) ---- */
+.intro-hero{text-align:center;padding:40px 0 10px}
+.intro-hero .hero-ico{margin:0 auto 18px;width:74px;height:74px;font-size:2.4rem;border-radius:22px}
+.eyebrow{display:inline-block;background:var(--accent-soft);color:var(--accent-ink);border-radius:999px;padding:5px 14px;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px}
+.intro-hero h1{font-size:clamp(2rem,8vw,3.2rem);line-height:1.05}
+.intro-hero p.lead{margin:14px auto 0;max-width:46ch;font-size:1.05rem}
+.intro-hero .hero-cta{justify-content:center;margin-top:26px}
+.btn.big{padding:15px 26px;font-size:1.05rem;border-radius:16px}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:640px){.feat{grid-template-columns:1fr}}
+.feat .f{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+.feat .f .n{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;font-weight:800;font-size:.85rem;display:grid;place-items:center;margin-bottom:10px}
+.feat .f .ic{font-size:1.5rem;margin-bottom:8px}
+.feat .f h3{font-size:1rem;font-weight:800;letter-spacing:-.01em;margin-bottom:4px}
+.feat .f p{color:var(--muted);font-size:.88rem}
+.intro-cta{text-align:center;background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;border-radius:22px;padding:30px 22px;box-shadow:0 16px 36px -18px var(--ring)}
+.intro-cta h2{font-size:1.35rem;font-weight:800;letter-spacing:-.01em}
+.intro-cta p{opacity:.92;margin-top:6px;font-size:.95rem}
+.intro-cta .btn{margin-top:16px;background:#fff;color:var(--grad-b);border-color:transparent}
+.intro-cta .btn:hover{border-color:transparent;filter:brightness(.97)}
 </style>`;
 
-// Khung trang dùng chung: head + nav + nội dung + footer
-function page(opts: { title: string; nav: "home" | "places" | "vote"; body: string; script: string }): string {
-  const on = (k: string) => (opts.nav === k ? ' class="on"' : "");
+type NavKey = "intro" | "home" | "places" | "vote";
+
+// Khung trang dùng chung: head + header menu + nội dung + footer + JS chung
+function page(opts: { title: string; nav: NavKey; body: string; script: string }): string {
+  const on = (k: NavKey) => (opts.nav === k ? ' class="on"' : "");
+  const menu = opts.nav === "intro"
+    ? `<a href="/home" class="cta">Vào trang chính →</a>`
+    : `<a href="/home"${on("home")}>Trang chủ</a>
+    <a href="/places"${on("places")}>Địa điểm &amp; giá</a>
+    <a href="/vote#results">Kết quả</a>
+    <a href="/vote" class="cta">🗳️ Vote ngay</a>`;
   return `<!doctype html>
 <html lang="vi">
 <head>
@@ -741,15 +778,16 @@ function page(opts: { title: string; nav: "home" | "places" | "vote"; body: stri
 ${SITE_CSS}
 </head>
 <body>
-<nav class="top"><div class="in">
-  <a class="brand" href="/" style="color:var(--ink);padding:0">🏖️ Đi biển thôi</a>
-  <a href="/"${on("home")}>Giới thiệu</a>
-  <a href="/places"${on("places")}>Địa điểm</a>
-  <a href="/vote" class="cta">Vote</a>
-</div></nav>
+<header class="site"><div class="in">
+  <a class="brand" href="${opts.nav === "intro" ? "/" : "/home"}"><span class="lg">🏖️</span>Đi biển thôi</a>
+  <button class="burger" id="burger" aria-label="Mở menu" aria-expanded="false">☰</button>
+  <nav class="menu" id="menu">
+    ${menu}
+  </nav>
+</div></header>
 <div class="wrap">
 ${opts.body}
-  <footer><a href="/">Giới thiệu</a> · <a href="/places">Địa điểm</a> · <a href="/vote">Vote &amp; kết quả</a> · <a href="/admin">quản trị</a></footer>
+  <footer><a href="/">Giới thiệu</a> · <a href="/home">Trang chủ</a> · <a href="/places">Địa điểm</a> · <a href="/vote">Vote &amp; kết quả</a> · <a href="/admin">quản trị</a></footer>
 </div>
 <script>
 var LOCS=${JSON.stringify(LOCS)};
@@ -773,30 +811,67 @@ function tally(state){
   return t;
 }
 function leader(t){var best=null;LOCS.forEach(function(l){var n=t.loc[l].length;if(n&&(!best||n>best.n))best={name:l,n:n}});return best}
+// Menu mobile
+(function(){var b=document.getElementById('burger'),m=document.getElementById('menu');if(!b||!m)return;
+  b.addEventListener('click',function(){var o=m.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');b.textContent=o?'✕':'☰'});
+  document.addEventListener('click',function(e){if(m.classList.contains('open')&&!m.contains(e.target)&&e.target!==b){m.classList.remove('open');b.textContent='☰';b.setAttribute('aria-expanded','false')}});
+})();
 ${opts.script}
 </script>
 </body>
 </html>`;
 }
 
-// ---------- / : GIỚI THIỆU ----------
+// ---------- / : GIỚI THIỆU (landing) ----------
+const INTRO_HTML = page({
+  title: "Đi biển thôi! — giới thiệu",
+  nav: "intro",
+  body: `
+  <header class="hero intro-hero">
+    <div class="hero-ico">🏖️</div>
+    <span class="eyebrow">Chuyến đi biển tháng 9</span>
+    <h1>Đi biển thôi!</h1>
+    <p class="lead">Cả nhóm cùng chọn điểm đến và ngày đi — công bằng, nhanh gọn, không cần cãi nhau 200 tin trong group chat.</p>
+    <div class="hero-cta">
+      <a class="btn grad big" href="/home">Bắt đầu thôi →</a>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-h"><h2>Cách hoạt động</h2><span class="hint">3 bước, chưa tới 1 phút</span></div>
+    <div class="feat">
+      <div class="f"><div class="n">1</div><h3>Xem địa điểm &amp; giá</h3><p>Ảnh, mô tả, giá tham khảo và link đặt phòng của từng nơi — ban tổ chức đã lọc sẵn.</p></div>
+      <div class="f"><div class="n">2</div><h3>Vote nơi &amp; ngày</h3><p>Nhập tên, tick nơi muốn đi (chọn được nhiều) và ngày rảnh. Có ý gì thêm thì góp ý luôn.</p></div>
+      <div class="f"><div class="n">3</div><h3>Xem kết quả</h3><p>Kết quả hiện chung cho cả nhóm và tự cập nhật — nơi nào nhiều phiếu nhất là đi.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>Vì sao dùng trang này</h2></div>
+    <div class="feat">
+      <div class="f"><div class="ic">🎯</div><h3>Mỗi người một phiếu</h3><p>Không spam, không vote hộ — mỗi tên và mỗi trình duyệt chỉ vote một lần.</p></div>
+      <div class="f"><div class="ic">⚡</div><h3>Kết quả trực tiếp</h3><p>Vote xong thấy ngay ai chọn gì, nơi nào đang dẫn đầu, ngày nào đông người rảnh.</p></div>
+      <div class="f"><div class="ic">🔒</div><h3>Góp ý riêng tư</h3><p>Ý kiến về chi phí, xe cộ, lịch trình chỉ ban tổ chức đọc được — nói thoải mái.</p></div>
+    </div>
+  </section>
+
+  <section class="intro-cta">
+    <h2>Sẵn sàng chưa?</h2>
+    <p>Vào trang chính để xem địa điểm, giá tham khảo và vote nơi bạn muốn đi.</p>
+    <a class="btn big" href="/home">Vào trang chính →</a>
+  </section>`,
+  script: ``,
+});
+
+// ---------- /home : TRANG CHỦ ----------
 const HOME_HTML = page({
-  title: "Đi biển thôi — giới thiệu chuyến đi",
+  title: "Trang chủ — Đi biển thôi!",
   nav: "home",
   body: `
   <header class="hero">
     <div class="hero-ico">🏖️</div>
-    <h1>Đi biển thôi —<br>cả nhóm cùng chọn điểm đến</h1>
-    <p>Trang này để cả nhóm xem trước các địa điểm, giá tham khảo, rồi vote nơi muốn đi và ngày rảnh. Mỗi người chỉ vote một lần, kết quả hiện chung cho tất cả.</p>
-    <div class="steps">
-      <span class="step"><b>1</b> Xem địa điểm &amp; giá</span>
-      <span class="step"><b>2</b> Vote nơi &amp; ngày</span>
-      <span class="step"><b>3</b> Xem kết quả</span>
-    </div>
-    <div class="hero-cta">
-      <a class="btn grad" href="/vote">🗳️ Vote ngay</a>
-      <a class="btn" href="/places">📍 Xem địa điểm</a>
-    </div>
+    <h1>Đi biển thôi!</h1>
+    <p>Xem trước các địa điểm và giá tham khảo, rồi vote nơi muốn đi và ngày rảnh. Mỗi người chỉ vote một lần, kết quả hiện chung cho cả nhóm.</p>
   </header>
 
   <section class="stats" id="stats">
@@ -833,7 +908,7 @@ const PLACES_HTML = page({
   nav: "places",
   body: `
   <header class="hero" style="padding-top:8px">
-    <p class="crumb"><a href="/">Giới thiệu</a> › Địa điểm</p>
+    <p class="crumb"><a href="/home">Trang chủ</a> › Địa điểm</p>
     <h1>📍 Tham khảo địa điểm</h1>
     <p>Xem ảnh, mô tả và giá tham khảo của từng nơi. Ưng chỗ nào thì bấm <b>Vote nơi này</b> — sang trang vote đã được chọn sẵn.</p>
   </header>
@@ -891,7 +966,7 @@ const VOTE_HTML = page({
   nav: "vote",
   body: `
   <header class="hero" style="padding-top:8px">
-    <p class="crumb"><a href="/">Giới thiệu</a> › Vote</p>
+    <p class="crumb"><a href="/home">Trang chủ</a> › Vote</p>
     <h1>🗳️ Vote chuyến đi</h1>
     <p>Nhập tên, chọn địa điểm và ngày đi rồi gửi — cả 3 mục đều bắt buộc. Chưa biết chọn gì? <a href="/places" style="color:var(--accent-ink);font-weight:600">Xem địa điểm &amp; giá trước</a>.</p>
   </header>
