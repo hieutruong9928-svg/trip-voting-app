@@ -778,11 +778,142 @@ a.entry .go{margin-top:auto;padding-top:8px;color:var(--accent-ink);font-weight:
 .feat .f .ic{font-size:1.5rem;margin-bottom:8px}
 .feat .f h3{font-size:1rem;font-weight:800;letter-spacing:-.01em;margin-bottom:4px}
 .feat .f p{color:var(--muted);font-size:.88rem}
-.intro-cta{text-align:center;background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;border-radius:22px;padding:30px 22px;box-shadow:0 16px 36px -18px var(--ring)}
-.intro-cta h2{font-size:1.35rem;font-weight:800;letter-spacing:-.01em}
-.intro-cta p{opacity:.92;margin-top:6px;font-size:.95rem}
-.intro-cta .btn{margin-top:16px;background:#fff;color:var(--grad-b);border-color:transparent}
-.intro-cta .btn:hover{border-color:transparent;filter:brightness(.97)}
+
+/* =====================================================================
+   LỚP GIAO DIỆN HIỆN ĐẠI – TỐI GIẢN (ghi đè các style phía trên)
+   Tone xanh – trắng: 1 màu xanh chủ đạo, nền trắng phẳng, viền mảnh, ít bóng.
+   ===================================================================== */
+:root{--blue:#2563EB;--blue-ink:#1D4ED8;--blue-soft:#EAF1FF;--bg:#F7F9FC;--line:#E6EBF2;--muted:#64748B;--ink:#0F172A;
+  --grad-a:#2563EB;--grad-b:#2563EB;--accent:#2563EB;--accent-ink:#1D4ED8;--accent-soft:#EAF1FF;--ring:rgba(37,99,235,.22);
+  --shadow:0 1px 2px rgba(15,23,42,.04);--navbg:rgba(255,255,255,.86);--chip:#F1F5F9;--track:#E9EEF5}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--blue:#60A5FA;--blue-ink:#93C5FD;--blue-soft:#12233D;--bg:#0B1220;--card:#111A2B;--line:#1F2B3F;--muted:#94A3B8;--ink:#E5EDF7;
+  --grad-a:#60A5FA;--grad-b:#60A5FA;--accent:#60A5FA;--accent-ink:#93C5FD;--accent-soft:#12233D;--ring:rgba(96,165,250,.28);--shadow:none;--navbg:rgba(11,18,32,.86);--chip:#182338;--track:#1B2740}}
+:root[data-theme="dark"]{--blue:#60A5FA;--blue-ink:#93C5FD;--blue-soft:#12233D;--bg:#0B1220;--card:#111A2B;--line:#1F2B3F;--muted:#94A3B8;--ink:#E5EDF7;
+  --grad-a:#60A5FA;--grad-b:#60A5FA;--accent:#60A5FA;--accent-ink:#93C5FD;--accent-soft:#12233D;--ring:rgba(96,165,250,.28);--shadow:none;--navbg:rgba(11,18,32,.86);--chip:#182338;--track:#1B2740}
+
+body{background:var(--bg)}
+.wrap{max-width:720px;padding:32px 20px 64px;gap:28px}
+
+/* header */
+header.site{background:var(--navbg);border-bottom:1px solid var(--line)}
+header.site .in{max-width:720px;padding:12px 20px}
+header.site .brand{font-size:.98rem}
+header.site .brand .lg{background:var(--blue);box-shadow:none;border-radius:9px;width:30px;height:30px;font-size:.95rem}
+header.site .menu a{font-weight:600;color:var(--muted);border-radius:10px}
+header.site .menu a.on{color:var(--blue-ink);background:var(--blue-soft)}
+header.site .menu a.cta{background:var(--blue);color:#fff;box-shadow:none;animation:none;border-radius:10px;padding:9px 16px}
+header.site .menu a.cta:hover{background:var(--blue-ink);filter:none}
+header.site .burger{border-radius:10px}
+
+/* chữ & tiêu đề: bỏ gradient text, dùng màu mực + xanh nhấn */
+header h1,.intro-hero h1{background:none;-webkit-background-clip:initial;background-clip:initial;-webkit-text-fill-color:initial;color:var(--ink);letter-spacing:-.03em;line-height:1.15;padding:.06em 0;overflow:visible;white-space:normal}
+header h1 em,.intro-hero h1 em{font-style:normal;color:var(--blue)}
+header.hero{padding-top:8px}
+header p{font-size:1rem;line-height:1.6}
+.hero-ico{display:none}
+.sec-h h2{font-size:1.15rem;font-weight:700}
+.crumb{font-size:.82rem}
+
+/* nút: đặc xanh / viền mảnh, bo 12px, không đổ bóng */
+.btn{border-radius:12px;padding:12px 20px;font-weight:600;box-shadow:none;border:1px solid var(--line);background:var(--card)}
+.btn:hover{transform:none;border-color:var(--blue);color:var(--blue-ink)}
+.btn.grad{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:none}
+.btn.grad:hover{background:var(--blue-ink);border-color:var(--blue-ink);color:#fff}
+.btn.big{padding:14px 24px;font-size:1rem;border-radius:12px}
+button.primary,button#send{background:var(--blue);border-radius:12px;box-shadow:none;font-weight:600}
+button.primary:hover:not(:disabled),button#send:hover:not(:disabled){background:var(--blue-ink);filter:none;transform:none;box-shadow:none}
+.fill{background:var(--blue)}
+label.opt{border-radius:12px}
+label.opt input:checked{background:var(--blue);box-shadow:none}
+label.opt:has(input:checked){background:var(--blue-soft);border-color:var(--blue)}
+.success .tick{background:var(--blue);box-shadow:none}
+.place .price{background:var(--blue-soft);color:var(--blue-ink)}
+
+/* thẻ phẳng */
+.card,.info,.stat,a.entry,.feat .f,.place,.empty-places{border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line)}
+a.entry:hover,.place:hover{transform:none;border-color:var(--blue)}
+
+/* số liệu: 1 thẻ chia 3 cột bằng vạch mảnh */
+.stats{grid-template-columns:repeat(3,1fr);gap:0;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.stat{border:0;border-radius:0;box-shadow:none;padding:16px 18px}
+.stat+.stat{border-left:1px solid var(--line)}
+.stat .k{font-size:.7rem;letter-spacing:.06em}
+.stat .v{font-size:1.4rem}
+.stat .v small{color:var(--muted)}
+
+/* lối vào */
+a.entry{padding:20px 20px 18px;gap:6px}
+a.entry .ico{font-size:1.4rem;width:40px;height:40px;border-radius:10px;background:var(--blue-soft);display:grid;place-items:center;margin-bottom:6px}
+a.entry h3{font-size:1rem}
+a.entry .go{color:var(--blue-ink)}
+
+/* thông tin chuyến đi: hàng key/value */
+.info{padding:6px 20px}
+.info h2{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:14px 0 6px;margin:0}
+.info .row-kv{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:.92rem;align-items:baseline}
+.info .row-kv .k{color:var(--muted);font-weight:600}
+.info .row-kv .v{color:var(--ink)}
+.pill{background:var(--blue-soft);color:var(--blue-ink);font-weight:600;margin:2px 6px 2px 0;padding:4px 11px}
+
+/* trang giới thiệu: hero rộng thoáng, bước = danh sách có số */
+.intro-hero{text-align:left;padding:28px 0 6px}
+.eyebrow{background:transparent;border:1px solid var(--line);color:var(--blue-ink);letter-spacing:.04em;font-size:.74rem;padding:5px 12px;border-radius:999px}
+.intro-hero h1{font-size:clamp(2.2rem,8vw,3.4rem);line-height:1.12;margin-top:6px}
+.intro-hero p.lead{margin:16px 0 0;max-width:52ch;font-size:1.05rem;color:var(--muted)}
+.intro-hero .hero-cta{justify-content:flex-start;margin-top:24px}
+.feat{grid-template-columns:1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.feat .f{border:0;border-radius:0;box-shadow:none;display:grid;grid-template-columns:44px 1fr;gap:4px 14px;padding:16px 18px;align-items:start}
+.feat .f+.f{border-top:1px solid var(--line)}
+.feat .f .n{width:32px;height:32px;border-radius:10px;background:var(--blue-soft);color:var(--blue-ink);font-size:.9rem;margin:0;grid-row:1/3}
+.feat .f .ic{font-size:1.15rem;width:32px;height:32px;border-radius:10px;background:var(--blue-soft);display:grid;place-items:center;margin:0;grid-row:1/3}
+.feat .f h3{font-size:.98rem;margin:0;padding-top:4px}
+.feat .f p{margin:0;font-size:.88rem}
+/* nút Bắt đầu: đặc xanh, bo 14px, mũi tên trượt nhẹ khi hover */
+.btn.start{background:var(--blue);border:1px solid var(--blue);color:#fff;padding:15px 28px;font-size:1.02rem;font-weight:700;border-radius:14px;gap:10px;box-shadow:0 8px 20px -10px var(--ring);transition:background .15s,transform .12s,box-shadow .15s}
+.btn.start .arr{display:inline-block;transition:transform .15s}
+.btn.start:hover{background:var(--blue-ink);border-color:var(--blue-ink);color:#fff;transform:translateY(-1px);box-shadow:0 12px 24px -10px var(--ring)}
+.btn.start:hover .arr{transform:translateX(3px)}
+.btn.start:active{transform:translateY(0)}
+.btn.start:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+footer{font-size:.78rem}
+
+/* ===== tối ưu điện thoại ===== */
+@media (max-width:640px){
+  .wrap{padding:20px 16px 48px;gap:20px}
+  header.site .in{padding:10px 16px}
+  header.hero{padding-top:0}
+  header h1{font-size:1.75rem}
+  header p{font-size:.95rem}
+  .intro-hero{padding:14px 0 0}
+  .intro-hero h1{font-size:2.3rem}
+  .intro-hero p.lead{font-size:.98rem}
+  .hero-cta{flex-direction:column;align-items:stretch}
+  .hero-cta .btn{width:100%;justify-content:center;padding:14px 18px;font-size:1rem}
+  .stats{grid-template-columns:1fr}
+  .stat{display:flex;justify-content:space-between;align-items:baseline;padding:13px 16px}
+  .stat+.stat{border-left:0;border-top:1px solid var(--line)}
+  .stat .v{font-size:1.2rem;margin:0}
+  .entries{grid-template-columns:1fr;gap:10px}
+  a.entry{padding:16px;display:grid;grid-template-columns:40px 1fr;gap:2px 12px;align-items:start}
+  a.entry .ico{grid-row:1/4;margin:0}
+  a.entry h3{margin:0}
+  a.entry p{font-size:.85rem}
+  a.entry .go{padding-top:4px}
+  .info{padding:4px 16px}
+  .info .row-kv{grid-template-columns:1fr;gap:4px;padding:10px 0}
+  .feat .f{padding:14px 16px}
+  .btn.start{width:100%;justify-content:center}
+  .sec-h{flex-direction:column;align-items:flex-start;gap:2px}
+  .card{padding:18px 16px;border-radius:14px}
+  .tabs{gap:6px}
+  .tabs a{padding:6px 11px;font-size:.84rem}
+  .places{grid-template-columns:1fr}
+  .place .img{aspect-ratio:16/9}
+  .field{margin-bottom:14px}
+  input[type=text],textarea{font-size:16px} /* tránh iOS zoom khi focus */
+  label.opt{padding:12px 14px}
+  footer{padding-top:0}
+}
 </style>`;
 
 type NavKey = "intro" | "home" | "places" | "vote";
@@ -790,8 +921,9 @@ type NavKey = "intro" | "home" | "places" | "vote";
 // Khung trang dùng chung: head + header menu + nội dung + footer + JS chung
 function page(opts: { title: string; nav: NavKey; body: string; script: string }): string {
   const on = (k: NavKey) => (opts.nav === k ? ' class="on"' : "");
-  const menu = opts.nav === "intro"
-    ? `<a href="/home" class="cta">Vào trang chính →</a>`
+  const intro = opts.nav === "intro";
+  const menu = intro
+    ? ""
     : `<a href="/home"${on("home")}>Trang chủ</a>
     <a href="/places"${on("places")}>Địa điểm &amp; giá</a>
     <a href="/vote#results">Kết quả</a>
@@ -809,15 +941,15 @@ ${SITE_CSS}
 </head>
 <body>
 <header class="site"><div class="in">
-  <a class="brand" href="${opts.nav === "intro" ? "/" : "/home"}"><span class="lg">🏖️</span>Đi biển thôi</a>
-  <button class="burger" id="burger" aria-label="Mở menu" aria-expanded="false">☰</button>
+  <a class="brand" href="${intro ? "/" : "/home"}"><span class="lg">🏖️</span>Đi biển thôi</a>
+  ${intro ? "" : `<button class="burger" id="burger" aria-label="Mở menu" aria-expanded="false">☰</button>
   <nav class="menu" id="menu">
     ${menu}
-  </nav>
+  </nav>`}
 </div></header>
 <div class="wrap">
 ${opts.body}
-  <footer><a href="/">Giới thiệu</a> · <a href="/home">Trang chủ</a> · <a href="/places">Địa điểm</a> · <a href="/vote">Vote &amp; kết quả</a> · <a href="/admin">quản trị</a></footer>
+  ${intro ? "" : `<footer><a href="/">Giới thiệu</a> · <a href="/home">Trang chủ</a> · <a href="/places">Địa điểm</a> · <a href="/vote">Vote &amp; kết quả</a> · <a href="/admin">quản trị</a></footer>`}
 </div>
 <script>
 var LOCS=${JSON.stringify(LOCS)};
@@ -856,12 +988,11 @@ const INTRO_HTML = page({
   nav: "intro",
   body: `
   <header class="hero intro-hero">
-    <div class="hero-ico">🏖️</div>
-    <span class="eyebrow">Chuyến đi biển tháng 9</span>
-    <h1>Đi biển thôi!</h1>
+    <span class="eyebrow">Chuyến đi biển · tháng 9</span>
+    <h1>Đi biển <em>thôi!</em></h1>
     <p class="lead">Cả nhóm cùng chọn điểm đến và ngày đi — công bằng, nhanh gọn, không cần cãi nhau 200 tin trong group chat.</p>
     <div class="hero-cta">
-      <a class="btn grad big" href="/home">Bắt đầu thôi →</a>
+      <a class="btn start" href="/home">Bắt đầu thôi <span class="arr">→</span></a>
     </div>
   </header>
 
@@ -882,12 +1013,7 @@ const INTRO_HTML = page({
       <div class="f"><div class="ic">🔒</div><h3>Góp ý riêng tư</h3><p>Ý kiến về chi phí, xe cộ, lịch trình chỉ ban tổ chức đọc được — nói thoải mái.</p></div>
     </div>
   </section>
-
-  <section class="intro-cta">
-    <h2>Sẵn sàng chưa?</h2>
-    <p>Vào trang chính để xem địa điểm, giá tham khảo và vote nơi bạn muốn đi.</p>
-    <a class="btn big" href="/home">Vào trang chính →</a>
-  </section>`,
+`,
   script: ``,
 });
 
@@ -897,8 +1023,7 @@ const HOME_HTML = page({
   nav: "home",
   body: `
   <header class="hero">
-    <div class="hero-ico">🏖️</div>
-    <h1>Đi biển thôi!</h1>
+    <h1>Đi biển <em>thôi!</em></h1>
     <p>Xem trước các địa điểm và giá tham khảo, rồi vote nơi muốn đi và ngày rảnh. Mỗi người chỉ vote một lần, kết quả hiện chung cho cả nhóm.</p>
   </header>
 
@@ -914,10 +1039,10 @@ const HOME_HTML = page({
   </section>
 
   <section class="info">
-    <h2>ℹ️ Thông tin chuyến đi</h2>
-    <p><b>Ngày dự kiến:</b> <span class="pill">Thứ Bảy · 19/09</span><span class="pill">Thứ Bảy · 26/09</span></p>
-    <p><b>Điểm đến đang cân nhắc:</b> ${LOCS.map((l) => `<span class="pill">${eh(l)}</span>`).join("")}<span class="pill">Khác — bạn đề xuất</span></p>
-    <p>Vote đóng khi ban tổ chức chốt. Có góp ý về lịch trình, xe cộ, chi phí thì ghi vào ô ý kiến trong trang vote — chỉ ban tổ chức đọc được.</p>
+    <h2>Thông tin chuyến đi</h2>
+    <div class="row-kv"><span class="k">Ngày dự kiến</span><span class="v"><span class="pill">Thứ Bảy · 19/09</span><span class="pill">Thứ Bảy · 26/09</span></span></div>
+    <div class="row-kv"><span class="k">Điểm đến</span><span class="v">${LOCS.map((l) => `<span class="pill">${eh(l)}</span>`).join("")}<span class="pill">Khác — bạn đề xuất</span></span></div>
+    <div class="row-kv"><span class="k">Lưu ý</span><span class="v" style="color:var(--muted)">Vote đóng khi ban tổ chức chốt. Góp ý về lịch trình, xe cộ, chi phí ghi vào ô ý kiến trong trang vote — chỉ ban tổ chức đọc được.</span></div>
   </section>`,
   script: `
 function fill(id,v){document.getElementById(id).innerHTML=v}
